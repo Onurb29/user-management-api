@@ -79,6 +79,12 @@ fi
 if ! printf '%s\n' "$FIELDS" | grep -Fxq "Phase"; then
   gh project field-create "$PROJECT_NUMBER" --owner "$OWNER" --name "Phase" --data-type SINGLE_SELECT --single-select-options "M0,M1,M2,M3,M4,M5" >/dev/null
 fi
+if ! printf '%s\n' "$FIELDS" | grep -Fxq "Start date"; then
+  gh project field-create "$PROJECT_NUMBER" --owner "$OWNER" --name "Start date" --data-type DATE >/dev/null
+fi
+if ! printf '%s\n' "$FIELDS" | grep -Fxq "Target date"; then
+  gh project field-create "$PROJECT_NUMBER" --owner "$OWNER" --name "Target date" --data-type DATE >/dev/null
+fi
 
 echo "Assigning milestones/labels and adding issues to the existing project..."
 EXISTING_ITEMS=$(gh project item-list "$PROJECT_NUMBER" --owner "$OWNER" --limit 200 --format json --jq '.items[].content.url')
