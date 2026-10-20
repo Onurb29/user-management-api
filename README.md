@@ -35,6 +35,25 @@ ASP.NET Core Controllers, C#, EF Core, SQLite, JWT Bearer authentication, IT/HR 
 - Record **actual** Microsoft Copilot contributions for the lab.
 - Never commit secrets, development JWT signing keys, bearer tokens, or personal user data.
 
+## One-time GitHub Project setup
+
+The repository issues and planning files are already populated. The separate GitHub Project still needs milestone, label, field, and issue associations.
+
+On a Mac with [GitHub CLI](https://cli.github.com/) installed, run:
+
+```bash
+brew install gh                    # only if gh is not already installed
+gh auth login                      # only if not already signed in
+gh auth refresh -s project         # grant GitHub Projects access
+gh repo clone Onurb29/user-management-api
+cd user-management-api
+bash scripts/bootstrap-github-project.sh
+```
+
+The script discovers the existing `User Management API` project and does **not** create another repository, project, or issue. It is safe to run again after partial completion.
+
+In GitHub Projects, add a **Board** view for tracking work and a **Roadmap** view using the `Start date` and `Target date` fields. Dates intentionally start blank.
+
 ## Initial setup
 
 The API has **not been scaffolded yet**. Work begins with [issue #1: API contract](https://github.com/Onurb29/user-management-api/issues/1) and [issue #2: workflow](https://github.com/Onurb29/user-management-api/issues/2). Implementation starts with [issue #3: scaffold ASP.NET Core](https://github.com/Onurb29/user-management-api/issues/3).
