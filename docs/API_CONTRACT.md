@@ -1,55 +1,49 @@
-# User Management API - API Contract (Draft)
+# User Management API contract
 
-> **Status: Proposed.** Finalize under [issue #1](https://github.com/Onurb29/user-management-api/issues/1) before implementation.
+## Managed records
 
-## Use cases
+A managed record is not an authentication account. The response DTO contains `id` (GUID), `firstName`, `lastName`, `email`, and `department`. Internal normalized email and audit timestamps are not exposed.
 
-An authorized IT or HR application user can list, retrieve, create, update, and delete **managed user records**. An API-managed record is **not** automatically a login account.
+Create and full-replacement update bodies contain four required fields:
 
-## Proposed managed user fields
+```json
+{
+  "firstName": "Alice",
+  "lastName": "Martin",
+  "email": "alice@example.com",
+  "department": "IT"
+}
+```
 
-| Field | C# type | Notes |
-| --- | --- | --- |
-| `Id` | `Guid` | Generated server-side |
-| `FullName` | `string` | Required, not whitespace |
-| `Email` | `string` | Required, format validation, unique after normalization |
-| `Department` | `string` | Required |
-| `CreatedAtUtc` | `DateTime` | Server-generated UTC |
-| `UpdatedAtUtc` | `DateTime` | Server-updated UTC |
+Names and department must be non-whitespace and at most 100 characters. Email must be a valid ASCII email address, at most 254 characters after trimming, with no embedded spaces. Editable text is trimmed. Department is a free-text organizational field, not the caller's authorization role. Server-generated ID and audit timestamps cannot be changed through these DTOs.
 
-## Proposed endpoints
+Email uniqueness uses the existing `Trim().ToUpperInvariant()` convention and SQLite unique index. A failed create/update does not overwrite an existing record.
 
-| Method | Route | Success | Expected error cases |
+## Routes
+
+| Method | Route | Success | Expected errors |
 | --- | --- | --- | --- |
-| GET | `/api/users?page=1&pageSize=25` | 200 | 400 for invalid paging |
-| GET | `/api/users/{id}` | 200 | 404 missing; 400 malformed ID (to confirm) |
-| POST | `/api/users` | 201 with Location | 400 invalid; 409 duplicate |
-| PUT | `/api/users/{id}` | 204 | 400 invalid; 404 missing; 409 duplicate |
-| DELETE | `/api/users/{id}` | 204 | 404 missing |
+| GET | `/api/users?page=1&pageSize=25` | 200, DTO array | 400 invalid paging |
+| GET | `/api/users/{id}` | 200, DTO | 400 invalid ID; 404 missing |
+| POST | `/api/users` | 201, DTO and Location | 400 invalid input; 409 duplicate email |
+| PUT | `/api/users/{id}` | 204, empty body | 400 invalid input/ID; 404 missing; 409 duplicate email |
+| DELETE | `/api/users/{id}` | 204, empty body | 400 invalid ID; 404 missing |
 
-## Authorization
+IDs must be non-empty GUIDs. Malformed IDs and the all-zero GUID consistently return 400. Unknown valid IDs return 404. PUT replaces all four editable fields; it is not a partial update. Deletion is permanent in this lab.
 
-| Caller | GET | POST | PUT | DELETE |
-| --- | --- | --- | --- | --- |
-| Role `IT` | Allow | Allow | Allow | Allow |
-| Role `HR` | Allow | Allow | Allow | Allow |
-| Other authenticated role | 403 | 403 | 403 | 403 |
-| Missing or invalid JWT | 401 | 401 | 401 | 401 |
+## Paging contract
 
-Use ASP.NET Core JWT Bearer authentication and an authorization policy for roles. Production identity-provider integration is outside v1.
+Defaults: `page=1`, `pageSize=25`. Page is at least 1; page size is between 1 and 100. Non-integers, integer overflow, and offsets above `int.MaxValue` return 400. Results are ordered by `LastName`, `FirstName`, then unique `Id`, using SQLite's default text collation. Ordering is deterministic for unchanged data.
 
-## Error contract
+The response is an array, with no count envelope. Empty databases and pages beyond the last record return 200 and `[]`. Continue requesting pages until fewer than `pageSize` records are returned. Offset paging is not a snapshot: concurrent inserts, deletes or name changes can shift records between requests.
 
-Prefer ASP.NET Core `ProblemDetails` / validation problem responses. Client responses must not include server stack traces. Expected failures map to 400/401/403/404/409; unexpected failures to 500.
+```http
+GET /api/users?page=2&pageSize=10
+Accept: application/json
+```
 
-## Decisions to confirm
+## Errors and security roadmap
 
-- [ ] Final user field names, data types, lengths and nullability.
-- [ ] Email uniqueness/normalization semantics.
-- [ ] Paging defaults, max page size and response envelope.
-- [ ] PUT full replacement vs partial update; this design uses full-resource PUT.
-- [ ] Error schema and invalid ID handling.
-- [ ] Whether hard deletion is acceptable for the lab.
-- [ ] Who issues local development JWTs and how test signing keys are stored safely.
+Expected controller errors use `application/problem+json`; validation responses additionally contain an `errors` object. Clients should inspect `status` and validation keys, not depend on exact English messages.
 
-**Final approval:** Completed when [issue #1](https://github.com/Onurb29/user-management-api/issues/1) is closed.
+JWT authentication, the IT-or-HR policy, sanitized unexpected 500 responses, and structured request logging are implemented in the next security slice. No authentication endpoint or managed-user login is part of this API.

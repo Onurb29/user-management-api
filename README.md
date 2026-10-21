@@ -10,7 +10,7 @@ A course capstone built with a professional issue-driven software development wo
 - **[GitHub Issues](https://github.com/Onurb29/user-management-api/issues)**: 18 actionable tasks with acceptance criteria.
 - **GitHub Project**: `User Management API` (Board/Roadmap). Use `scripts/bootstrap-github-project.sh` to associate issues, milestones, labels, and project fields using the GitHub CLI.
 
-## Planned API
+## API
 
 | Method | Route | Purpose |
 | --- | --- | --- |
@@ -70,7 +70,7 @@ The migration `AddUserNormalizationAndTimestamps` creates `NormalizedEmail`, `Cr
 
 **If you already applied an earlier copy of the second migration:** Editing its source does not rerun it on your database. For a disposable empty lab DB, recreate it with `dotnet ef database update` after deleting just the local SQLite file; if it contains data, keep it and reconcile legacy rows separately.
 
-### Automated persistence tests
+### Automated tests
 
 From the repository root:
 
@@ -80,7 +80,17 @@ dotnet test UserManagementAPI.slnx
 
 The SQLite tests create isolated temporary databases, apply real EF Core migrations, verify records survive reopening the database, check UTC audit timestamp behavior, and verify that a duplicate normalized email is rejected by SQLite itself. A GitHub Actions workflow also runs them on pushes and pull requests.
 
-**Implementation status:** Database persistence and its tests are part of issue #4; service abstraction, complete CRUD, validation, JWT authentication, and release CI are subsequent issues.
 ## Current implementation
 
-Issue #3 introduced the controller-based ASP.NET Core API. Issue #4 adds EF Core persistence and automated database verification. Endpoints beyond the initial GET remain planned, not implemented.
+Issues #3–#5 provide the .NET 10 API, EF Core SQLite persistence, and scoped `IUserService`/`UserService`. The CRUD slice (#6–#9) exposes all five operations through DTOs, with HTTP integration tests.
+
+- `GET /api/users?page=1&pageSize=25` returns a JSON array, ordered by last name, first name, then ID. Page size is 1–100; an empty or past-end page is `[]` with 200. There is no total-count metadata; request the next page until fewer than `pageSize` records are returned.
+- `GET /api/users/{id}` returns a user DTO or 404.
+- `POST /api/users` returns 201, the DTO, and a Location header.
+- `PUT /api/users/{id}` replaces editable fields and returns 204 or 404.
+- `DELETE /api/users/{id}` returns 204 or 404.
+- Invalid input, paging, malformed IDs and the empty GUID return 400. Duplicate normalized emails return 409.
+
+See [API contract](docs/API_CONTRACT.md) for examples and limits. Authentication and centralized error/logging middleware are the next slice; this branch is not a secured deployment.
+
+Tests exercise the actual HTTP pipeline with `WebApplicationFactory` and migrated temporary SQLite databases. They cannot write to the developer's `users.db`. Service tests also force an email collision between the duplicate precheck and save, verifying that the unique index still returns a useful business outcome.

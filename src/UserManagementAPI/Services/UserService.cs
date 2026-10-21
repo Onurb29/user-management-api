@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using UserManagementAPI.Contracts;
@@ -78,6 +79,8 @@ public sealed class UserService : IUserService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(details);
+        details = details with { Email = details.Email?.Trim()! };
+        Validator.ValidateObject(details, new ValidationContext(details), validateAllProperties: true);
 
         var normalizedEmail = NormalizeEmail(details.Email);
 
@@ -127,6 +130,8 @@ public sealed class UserService : IUserService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(details);
+        details = details with { Email = details.Email?.Trim()! };
+        Validator.ValidateObject(details, new ValidationContext(details), validateAllProperties: true);
 
         // This query tracks the entity because we intend to change it.
         var user = await _db.Users.SingleOrDefaultAsync(

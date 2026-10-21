@@ -1,6 +1,23 @@
-@UserManagementAPI_HostAddress = http://localhost:5144
+@host = https://localhost:7013
+@userId = 00000000-0000-0000-0000-000000000001
 
-GET {{UserManagementAPI_HostAddress}}/api/users
+GET {{host}}/api/users?page=1&pageSize=25
 Accept: application/json
 
-###
+### Retrieve an existing ID from a creation response
+GET {{host}}/api/users/{{userId}}
+
+### Create
+POST {{host}}/api/users
+Content-Type: application/json
+
+{"firstName":"Alice","lastName":"Martin","email":"alice@example.com","department":"IT"}
+
+### Replace editable fields
+PUT {{host}}/api/users/{{userId}}
+Content-Type: application/json
+
+{"firstName":"Alice","lastName":"Martin","email":"alice@example.com","department":"HR"}
+
+### Delete
+DELETE {{host}}/api/users/{{userId}}

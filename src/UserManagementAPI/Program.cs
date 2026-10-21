@@ -26,3 +26,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Expose the entry point to the HTTP integration test host.
+public partial class Program;
