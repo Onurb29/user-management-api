@@ -1,3 +1,4 @@
+using Xunit;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using UserManagementAPI.Data;
