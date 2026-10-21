@@ -4,6 +4,10 @@
 
 A course capstone built with a professional issue-driven software development workflow. The goal is to deliver a secure REST API that lets authorized **IT** and **HR** personnel manage user records.
 
+## Ready for review
+
+Implementation is prepared in three dependent PRs: CRUD → security/reliability → verification/documentation. Review and merge in that order. The final Release build has zero warnings and 154 passing tests. See [verification evidence](docs/VERIFICATION.md) and [release checklist](docs/RELEASE.md). Actual Copilot evidence and the final review/tag are still pending; this is not a released v1.0.0.
+
 ## Project management
 
 - **[Development roadmap](docs/ROADMAP.md)**: architecture, phases, test expectations, and Definition of Done.
@@ -20,7 +24,7 @@ A course capstone built with a professional issue-driven software development wo
 | PUT | `/api/users/{id}` | Update existing user |
 | DELETE | `/api/users/{id}` | Delete user |
 
-## Planned stack
+## Stack
 
 ASP.NET Core Controllers, C#, EF Core, SQLite, JWT Bearer authentication, IT/HR authorization policies, Serilog, ProblemDetails, OpenAPI, xUnit integration tests, and GitHub Actions.
 
@@ -28,7 +32,7 @@ ASP.NET Core Controllers, C#, EF Core, SQLite, JWT Bearer authentication, IT/HR 
 
 ## Working agreement
 
-- Take one GitHub Issue at a time.
+- Implement issues in dependency order; closely related routes may share a tested PR.
 - Create a small feature branch (e.g. `feat/06-get-users`).
 - Implement and test the requirement; update documentation when relevant.
 - Open a PR, review the change, and merge only after the acceptance criteria pass.
@@ -48,7 +52,8 @@ dotnet tool restore
 dotnet restore UserManagementAPI.slnx
 cd src/UserManagementAPI
 dotnet ef database update
-dotnet run --urls http://localhost:5144
+dotnet dev-certs https --trust
+dotnet run --launch-profile https
 ```
 
 The database connection string in `src/UserManagementAPI/appsettings.json` uses `Data Source=users.db`. Run the API and EF commands from `src/UserManagementAPI` so the local SQLite file is created there; the path is relative to the process working directory. Only development data belongs in this file.
@@ -82,7 +87,7 @@ The SQLite tests create isolated temporary databases, apply real EF Core migrati
 
 ## Current implementation
 
-Issues #3–#5 provide the .NET 10 API, EF Core SQLite persistence, and scoped `IUserService`/`UserService`. The CRUD slice (#6–#9) exposes all five operations through DTOs, with HTTP integration tests.
+Issues #3–#5 provide the .NET 10 API, EF Core SQLite persistence, and scoped `IUserService`/`UserService`. The CRUD slice (#6–#9) exposes all five operations through DTOs, with HTTP integration tests. The security slice (#10–#13, #15) adds JWT authorization, safe errors, and structured metadata logging.
 
 - `GET /api/users?page=1&pageSize=25` returns a JSON array, ordered by last name, first name, then ID. Page size is 1–100; an empty or past-end page is `[]` with 200. There is no total-count metadata; request the next page until fewer than `pageSize` records are returned.
 - `GET /api/users/{id}` returns a user DTO or 404.
@@ -91,6 +96,28 @@ Issues #3–#5 provide the .NET 10 API, EF Core SQLite persistence, and scoped `
 - `DELETE /api/users/{id}` returns 204 or 404.
 - Invalid input, paging, malformed IDs and the empty GUID return 400. Duplicate normalized emails return 409.
 
-See [API contract](docs/API_CONTRACT.md) for examples and limits. Authentication and centralized error/logging middleware are the next slice; this branch is not a secured deployment.
+See [API contract](docs/API_CONTRACT.md) for examples and limits. All user routes now require a valid JWT with an IT or HR role. See [local authentication setup](docs/SECURITY.md) before sending requests.
 
 Tests exercise the actual HTTP pipeline with `WebApplicationFactory` and migrated temporary SQLite databases. They cannot write to the developer's `users.db`. Service tests also force an email collision between the duplicate precheck and save, verifying that the unique index still returns a useful business outcome.
+
+## Authentication and diagnostics
+
+Use [SECURITY.md](docs/SECURITY.md) to issue a short-lived development token with `dotnet user-jwts`. Missing/invalid tokens return 401; a valid token without an IT or HR role returns 403. The managed user's department does not grant caller access.
+
+Unexpected failures return a sanitized 500 ProblemDetails response. `X-Correlation-ID` links responses to structured JSON logs. Only method, route template, status, duration, correlation and exception type are logged; raw bodies, tokens, emails, query strings and exception messages are excluded. Logging wraps the exception handler so the final 500 is recorded.
+
+OpenAPI JSON is available at `/openapi/v1.json` in Development. It is disabled in other environments. Tests validate real signed JWTs using freshly generated test keys, not an authentication bypass.
+
+## Performance and schema upgrade
+
+After checking out the final branch, run `dotnet ef database update` from `src/UserManagementAPI` to apply the additive `AddUserSortIndex` migration. It adds an index matching list ordering without changing existing data. See [measured query results](docs/PERFORMANCE.md) and the repeatable benchmark tool.
+
+## Reproduce CI locally
+
+```bash
+dotnet restore UserManagementAPI.slnx
+dotnet build UserManagementAPI.slnx --configuration Release --no-restore --warnaserror
+dotnet test UserManagementAPI.slnx --configuration Release --no-build --no-restore
+```
+
+GitHub Actions runs these checks for PRs and pushes to main, with downloadable TRX results. The separate `test/ci-failure-proof` branch intentionally fails one test to demonstrate CI failure reporting; it is evidence only and must never be merged.

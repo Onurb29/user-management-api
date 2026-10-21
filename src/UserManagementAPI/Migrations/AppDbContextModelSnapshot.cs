@@ -59,6 +59,8 @@ namespace UserManagementAPI.Migrations
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();
 
+                    b.HasIndex("LastName", "FirstName", "Id");
+
                     b.ToTable("Users");
                 });
 #pragma warning restore 612, 618

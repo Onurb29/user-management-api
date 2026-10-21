@@ -1,6 +1,6 @@
 # User Management API - Development Roadmap
 
-> **Status:** Planning  
+> **Status:** Implementation prepared for review; Copilot evidence and final release remain pending.
 > **Target:** ASP.NET Core / .NET 10 | v1.0.0  
 > **Working model:** GitHub Issues → feature branch → implementation + tests → pull request → review → merge  
 > **Source of truth for execution:** [GitHub Issues](https://github.com/Onurb29/user-management-api/issues)
@@ -38,14 +38,18 @@ Build a REST API for authorized **IT** and **HR** users to manage user records. 
 
 Common errors: 400 malformed/invalid input, 401 missing or invalid token, 403 authenticated but unauthorized, 404 missing record, 409 duplicate email, and sanitized 500 for unexpected server failure. Specify precise contract in `docs/API_CONTRACT.md` as part of issue #1.
 
+## Review status
+
+Issues #1–#5 are closed in GitHub. Remaining implementation is grouped into dependent CRUD, security/reliability, and verification/documentation PRs. Checkboxes below remain open until their changes are reviewed and merged; they do not imply the code is missing. See [verification evidence](VERIFICATION.md). Issue #17 awaits the user's actual Copilot details; issue #18 awaits final review and tagging.
+
 ## Milestones and issues
 
 ### M0 - Requirements & Architecture
 
 **Outcome:** Define scope, contracts and workflow.
 
-- [ ] [#1 - Define user entity and API contract](https://github.com/Onurb29/user-management-api/issues/1)
-- [ ] [#2 - Establish project development workflow](https://github.com/Onurb29/user-management-api/issues/2)
+- [x] [#1 - Define user entity and API contract](https://github.com/Onurb29/user-management-api/issues/1)
+- [x] [#2 - Establish project development workflow](https://github.com/Onurb29/user-management-api/issues/2)
 
 **Exit criteria:** Planning complete; endpoint rules and development workflow are clear.
 
@@ -53,9 +57,9 @@ Common errors: 400 malformed/invalid input, 401 missing or invalid token, 403 au
 
 **Outcome:** Build an executable, persisted service boundary.
 
-- [ ] [#3 - Scaffold ASP.NET Core Web API project](https://github.com/Onurb29/user-management-api/issues/3)
-- [ ] [#4 - Implement EF Core and SQLite persistence](https://github.com/Onurb29/user-management-api/issues/4)
-- [ ] [#5 - Implement user service with dependency injection](https://github.com/Onurb29/user-management-api/issues/5)
+- [x] [#3 - Scaffold ASP.NET Core Web API project](https://github.com/Onurb29/user-management-api/issues/3)
+- [x] [#4 - Implement EF Core and SQLite persistence](https://github.com/Onurb29/user-management-api/issues/4)
+- [x] [#5 - Implement user service with dependency injection](https://github.com/Onurb29/user-management-api/issues/5)
 
 **Exit criteria:** Application builds; SQLite migrations run; user service supports CRUD.
 

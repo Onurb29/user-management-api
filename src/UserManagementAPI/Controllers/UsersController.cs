@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using UserManagementAPI.Contracts;
 using UserManagementAPI.Services;
 
 namespace UserManagementAPI.Controllers;
 
 [ApiController]
+[Authorize(Policy = "ManageUsers")]
 [Route("api/users")]
 public sealed class UsersController(IUserService users) : ControllerBase
 {

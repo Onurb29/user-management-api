@@ -35,6 +35,9 @@ public sealed class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(254);
 
+            // Match the complete ordering used by paged reads.
+            entity.HasIndex(u => new { u.LastName, u.FirstName, u.Id });
+
             entity.HasIndex(u => u.NormalizedEmail)
                 .IsUnique();
 
