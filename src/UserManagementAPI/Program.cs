@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using UserManagementAPI.Data;
+using UserManagementAPI.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddOpenApi(); // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));

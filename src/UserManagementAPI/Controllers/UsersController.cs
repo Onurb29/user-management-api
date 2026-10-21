@@ -1,30 +1,25 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using UserManagementAPI.Data;
-using UserManagementAPI.Models;
-
+using UserManagementAPI.Contracts;
+using UserManagementAPI.Services;
 namespace UserManagementAPI.Controllers;
 
 [ApiController]
 [Route("api/users")]
 public sealed class UsersController : ControllerBase
 {
-    private readonly AppDbContext _db;
+     private readonly IUserService _users;
 
-    public UsersController(AppDbContext db)
+    public UsersController(IUserService users)
     {
-        _db = db;
+        _users = users ;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<User>>> GetAll(
+    public async Task<ActionResult<IReadOnlyList<UserResponse>>> GetAll(
         CancellationToken cancellationToken)
     {
-        var users = await _db.Users
-            .AsNoTracking()
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
-            .ToListAsync(cancellationToken);
+        var users = await _users.GetAllAsync(
+            cancellationToken: cancellationToken);
 
         return Ok(users);
     }
