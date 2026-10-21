@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -26,7 +27,28 @@ builder.Services.AddSerilog((services, logger) => logger
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options => options.AddDocumentTransformer((document, context, cancellationToken) =>
+{
+    document.Components ??= new OpenApiComponents();
+    document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+    document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http, Scheme = "bearer", BearerFormat = "JWT",
+        Description = "A valid development JWT with an IT or HR role."
+    };
+    foreach (var path in document.Paths.Values)
+        foreach (var operation in path.Operations?.Values.AsEnumerable() ?? Enumerable.Empty<OpenApiOperation>())
+        {
+            operation.Security = [new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+            }];
+            operation.Responses ??= new OpenApiResponses();
+            operation.Responses.TryAdd("401", new OpenApiResponse { Description = "Missing or invalid bearer token." });
+            operation.Responses.TryAdd("403", new OpenApiResponse { Description = "IT or HR role required." });
+        }
+    return Task.CompletedTask;
+}));
 builder.Services.AddProblemDetails(options => options.CustomizeProblemDetails = context =>
     context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();

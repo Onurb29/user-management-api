@@ -21,13 +21,14 @@ namespace UserManagementAPI.Tests.Integration;
 public class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly byte[] _signingKey = RandomNumberGenerator.GetBytes(32);
+    public string EnvironmentName { get; init; } = "Testing";
     public CapturedLogs Logs { get; } = new();
     public Action<IServiceCollection>? ConfigureServices { get; init; }
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"users-http-{Guid.NewGuid():N}.db");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment(EnvironmentName);
         builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Authentication:Schemes:Bearer:ValidIssuer"] = "test-issuer",
