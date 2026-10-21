@@ -48,6 +48,18 @@ namespace UserManagementAPI.Migrations
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
+            // Backfill legacy records before enforcing uniqueness.
+            // SQLite's UPPER handles ASCII email casing, appropriate for this lab.
+            // Historical creation times were not stored; migration time is the
+            // best available UTC timestamp for pre-existing rows.
+            migrationBuilder.Sql(
+                """
+                UPDATE "Users"
+                SET "NormalizedEmail" = UPPER(TRIM("Email")),
+                    "CreatedAtUtc" = CURRENT_TIMESTAMP,
+                    "UpdatedAtUtc" = CURRENT_TIMESTAMP;
+                """);
+
             migrationBuilder.CreateIndex(
                 name: "IX_Users_NormalizedEmail",
                 table: "Users",

@@ -9,7 +9,7 @@ public sealed class User
     public required string Department { get; set; }
 
     // Database Properties
-    public required string NormalizedEmail { get; set; } = string.Empty;
+    public string NormalizedEmail { get; set; } = string.Empty;
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }
