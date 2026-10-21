@@ -1,23 +1,30 @@
 @host = https://localhost:7013
+# Set a short-lived token locally; do not commit its value.
+@token =
 @userId = 00000000-0000-0000-0000-000000000001
 
 GET {{host}}/api/users?page=1&pageSize=25
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Retrieve an existing ID from a creation response
 GET {{host}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
 
 ### Create
 POST {{host}}/api/users
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"firstName":"Alice","lastName":"Martin","email":"alice@example.com","department":"IT"}
 
 ### Replace editable fields
 PUT {{host}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"firstName":"Alice","lastName":"Martin","email":"alice@example.com","department":"HR"}
 
 ### Delete
 DELETE {{host}}/api/users/{{userId}}
+Authorization: Bearer {{token}}
