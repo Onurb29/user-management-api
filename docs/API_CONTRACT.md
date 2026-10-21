@@ -42,8 +42,12 @@ GET /api/users?page=2&pageSize=10
 Accept: application/json
 ```
 
-## Errors and security roadmap
+## Errors and authorization
 
 Expected controller errors use `application/problem+json`; validation responses additionally contain an `errors` object. Clients should inspect `status` and validation keys, not depend on exact English messages.
 
-JWT authentication, the IT-or-HR policy, sanitized unexpected 500 responses, and structured request logging are implemented in the next security slice. No authentication endpoint or managed-user login is part of this API.
+Every user route requires `Authorization: Bearer <token>` with a valid signature, issuer, audience, expiry, and an `IT` or `HR` role. Missing/invalid/expired tokens return 401 and a Bearer challenge; other authenticated callers return 403. These checks run before model validation or database operations.
+
+Unexpected failures return 500 with the generic title `An unexpected error occurred.`; internal messages, SQL and stack traces are excluded. Middleware-generated errors include `traceId`. All responses carry `X-Correlation-ID` for log correlation. Exact English titles are not a compatibility contract.
+
+No authentication endpoint or managed-user login is part of this API. See [development token setup](SECURITY.md).
