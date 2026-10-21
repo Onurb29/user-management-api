@@ -1,5 +1,6 @@
-
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using UserManagementAPI.Data;
 using UserManagementAPI.Models;
 
 namespace UserManagementAPI.Controllers;
@@ -8,19 +9,22 @@ namespace UserManagementAPI.Controllers;
 [Route("api/users")]
 public sealed class UsersController : ControllerBase
 {
-    [HttpGet]
-    public ActionResult<IEnumerable<User>> GetAll()
+    private readonly AppDbContext _db;
+
+    public UsersController(AppDbContext db)
     {
-        var users = new List<User> // Sample list of users
-        {
-            new User
-            {
-                FirstName = "Alice",
-                LastName = "Martin",
-                Email = "alice@example.com",
-                Department = "IT"
-            }
-        };
+        _db = db;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<List<User>>> GetAll(
+        CancellationToken cancellationToken)
+    {
+        var users = await _db.Users
+            .AsNoTracking()
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .ToListAsync(cancellationToken);
 
         return Ok(users);
     }
