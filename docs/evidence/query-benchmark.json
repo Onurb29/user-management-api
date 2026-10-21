@@ -1,0 +1,60 @@
+{
+  "capturedAtUtc": "2026-10-21T21:52:55.276719+00:00",
+  "runtime": ".NET 10.0.12",
+  "os": "macOS 27.0.1",
+  "architecture": "Arm64",
+  "iterations": 15,
+  "scope": "Local SQLite query and materialization, 2 warmups, 15 samples, median elapsed and process allocated bytes. No HTTP/network/concurrency throughput claims.",
+  "measurements": [
+    {
+      "rows": 1000,
+      "baseline": {
+        "returnedRows": 1000,
+        "medianMilliseconds": 4.4278,
+        "medianAllocatedBytes": 920088
+      },
+      "pagedBeforeIndex": {
+        "returnedRows": 25,
+        "medianMilliseconds": 0.8405,
+        "medianAllocatedBytes": 39288
+      },
+      "pagedWithIndex": {
+        "returnedRows": 25,
+        "medianMilliseconds": 0.6504,
+        "medianAllocatedBytes": 39288
+      },
+      "planBefore": [
+        "SCAN Users",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "planAfter": [
+        "SCAN Users USING INDEX IX_Users_LastName_FirstName_Id"
+      ]
+    },
+    {
+      "rows": 10000,
+      "baseline": {
+        "returnedRows": 10000,
+        "medianMilliseconds": 37.829,
+        "medianAllocatedBytes": 9157944
+      },
+      "pagedBeforeIndex": {
+        "returnedRows": 25,
+        "medianMilliseconds": 1.6315,
+        "medianAllocatedBytes": 38424
+      },
+      "pagedWithIndex": {
+        "returnedRows": 25,
+        "medianMilliseconds": 0.5961,
+        "medianAllocatedBytes": 38424
+      },
+      "planBefore": [
+        "SCAN Users",
+        "USE TEMP B-TREE FOR ORDER BY"
+      ],
+      "planAfter": [
+        "SCAN Users USING INDEX IX_Users_LastName_FirstName_Id"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 # Microsoft Copilot - Lab Evidence Log
 
-> **Status: Template only.** Fill this with **actual** Microsoft Copilot interactions during development. Do not invent prompts, fixes, or results. See [issue #17](https://github.com/Onurb29/user-management-api/issues/17).
+> **Status: User reports Microsoft Copilot was used; actual prompt/suggestion evidence is still pending.** Issue #17 remains open until the user supplies and verifies those details. No Copilot contribution is inferred from Codex work.
 
 ## Purpose
 
@@ -37,3 +37,11 @@ _Describe the concept, bug, or trade-off._
 Complete this section near v1.0.0. Describe which parts benefited from Copilot and at least one example of a defect or improvement verified by your own tests.
 
 > ChatGPT and Microsoft Copilot are different tools. Attribute contributions accurately.
+
+## Verified ChatGPT / Codex assistance (separate attribution)
+
+On 2026-10-21 the user authorized: “Take over implementation and tests; prepare PRs for my review.” Codex implemented and tested the CRUD, security/logging, and verification batches in dependent PRs. This is Codex assistance, not evidence of Microsoft Copilot usage.
+
+Concrete suggestion-to-verification example: initial request logging used safe route templates, but a privacy test found an ASP.NET ambient RequestPath property containing a synthetic private marker. The implementation added a metadata allowlist and tests confirmed the marker, email and bearer token were absent. Another test found that exception handling cleared correlation headers; setting the header in OnStarting fixed the 500 response case.
+
+The user should add their actual Copilot prompt, suggestion, decision and verification using the template above. Do not relabel the Codex examples as Copilot evidence.

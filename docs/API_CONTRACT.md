@@ -42,6 +42,32 @@ GET /api/users?page=2&pageSize=10
 Accept: application/json
 ```
 
+## Response examples
+
+A successful create returns 201 with `Location: /api/users/<new-id>` and this shape; GET by ID returns the same shape with 200:
+
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "firstName": "Alice",
+  "lastName": "Martin",
+  "email": "alice@example.com",
+  "department": "IT"
+}
+```
+
+GET list wraps zero or more of these objects in an array. Successful PUT and DELETE have no response body. A duplicate-email response has status 409 and a ProblemDetails body, for example:
+
+```json
+{
+  "type": "https://tools.ietf.org/html/rfc9110#section-15.5.10",
+  "title": "A user with this email already exists.",
+  "status": 409
+}
+```
+
+ProblemDetails can also contain a trace identifier or other standard fields. Validation failures use status 400 and an `errors` dictionary keyed by the invalid field. Authentication failures use 401 (with a Bearer challenge), and role failures use 403. Do not depend on exact title or type URI strings.
+
 ## Errors and authorization
 
 Expected controller errors use `application/problem+json`; validation responses additionally contain an `errors` object. Clients should inspect `status` and validation keys, not depend on exact English messages.

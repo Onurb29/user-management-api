@@ -4,6 +4,10 @@
 
 A course capstone built with a professional issue-driven software development workflow. The goal is to deliver a secure REST API that lets authorized **IT** and **HR** personnel manage user records.
 
+## Ready for review
+
+Implementation is prepared in three dependent PRs: CRUD → security/reliability → verification/documentation. Review and merge in that order. The final Release build has zero warnings and 154 passing tests. See [verification evidence](docs/VERIFICATION.md) and [release checklist](docs/RELEASE.md). Actual Copilot evidence and the final review/tag are still pending; this is not a released v1.0.0.
+
 ## Project management
 
 - **[Development roadmap](docs/ROADMAP.md)**: architecture, phases, test expectations, and Definition of Done.
@@ -28,7 +32,7 @@ ASP.NET Core Controllers, C#, EF Core, SQLite, JWT Bearer authentication, IT/HR 
 
 ## Working agreement
 
-- Take one GitHub Issue at a time.
+- Implement issues in dependency order; closely related routes may share a tested PR.
 - Create a small feature branch (e.g. `feat/06-get-users`).
 - Implement and test the requirement; update documentation when relevant.
 - Open a PR, review the change, and merge only after the acceptance criteria pass.
@@ -103,3 +107,17 @@ Use [SECURITY.md](docs/SECURITY.md) to issue a short-lived development token wit
 Unexpected failures return a sanitized 500 ProblemDetails response. `X-Correlation-ID` links responses to structured JSON logs. Only method, route template, status, duration, correlation and exception type are logged; raw bodies, tokens, emails, query strings and exception messages are excluded. Logging wraps the exception handler so the final 500 is recorded.
 
 OpenAPI JSON is available at `/openapi/v1.json` in Development. It is disabled in other environments. Tests validate real signed JWTs using freshly generated test keys, not an authentication bypass.
+
+## Performance and schema upgrade
+
+After checking out the final branch, run `dotnet ef database update` from `src/UserManagementAPI` to apply the additive `AddUserSortIndex` migration. It adds an index matching list ordering without changing existing data. See [measured query results](docs/PERFORMANCE.md) and the repeatable benchmark tool.
+
+## Reproduce CI locally
+
+```bash
+dotnet restore UserManagementAPI.slnx
+dotnet build UserManagementAPI.slnx --configuration Release --no-restore --warnaserror
+dotnet test UserManagementAPI.slnx --configuration Release --no-build --no-restore
+```
+
+GitHub Actions runs these checks for PRs and pushes to main, with downloadable TRX results. The separate `test/ci-failure-proof` branch intentionally fails one test to demonstrate CI failure reporting; it is evidence only and must never be merged.
